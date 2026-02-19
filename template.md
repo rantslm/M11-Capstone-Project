@@ -90,30 +90,42 @@ From a technical perspective, developers and maintainers care because the system
 - Responsive and intuitive UI
 - Stable performance and test coverage
 
-### Product Description
+## Product Description
 
-#### Architecture Diagram
+### Architecture Diagram
 
 - Include a diagram of the building blocks of the design including users and how they interact with the product.
 
-#### User Stories
+### User Stories
 
-| #   | User Story Title | User Story Description | Priority | Additional Notes |
-| --- | ---------------- | ---------------------- | -------- | ---------------- |
-| 1   |                  |                        |          |                  |
-| 2   |                  |                        |          |                  |
-| ... |                  |                        |          |                  |
-| N   |                  |                        |          |
+#### 1: Account Registration
 
-#### User Flow
+Priority: High
+
+**Description: **
+User is able to create an account using email and password
+
+**As a user**
+**I want** to create an account with my email and password
+**so that** I can securely access and manage my job applications.
+
+**Acceptance Criteria**
+- Given a user submits valid registration details
+Then a new account is created and stored in the database
+- Given a user submits an email that already exists
+Then the system displays an appropriate error message
+
+
+
+### User Flow
 
 - Present as a flow diagram the steps a user may make in interacting with the software.
 
-#### Wireframe Design
+### Wireframe Design
 
 - Show elements of the user interface, either manually or via a tool such as Figma.
 
-#### Open Questions / Out of Scope
+## Open Questions / Out of Scope
 
 - What features are considered out of scope?
 
@@ -126,25 +138,25 @@ From a technical perspective, developers and maintainers care because the system
 - How reliable must the application be? (e.g. mean time between failures)
 - Does the software conform to any technical standards to ease maintainability?
 
-#### Project Planning
+## Project Planning
 
 - Include GitHub project board showing key milestones (with dates) to complete the project.
 
-#### Testing Strategy
+### Testing Strategy
 
 - What were steps undertaken to achieve product quality?
 - How was each feature of the application tested?
 - How did you handle edge cases?
 
-#### Implementation
+### Implementation
 
 - What were the considerations for deploying the software?
 
-#### End-to-end Solution
+### End-to-end Solution
 
 - How well did the software meet its objectives?
 
-#### References
+### References
 
 - Where is the code used in the project? (Use permalinks to GitHub)
 - What are the resources used in the project? (libraries, APIs, databases, tools, etc)
