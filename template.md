@@ -100,7 +100,7 @@ From a technical perspective, developers and maintainers care because the system
 
 ### User Stories
 
-### 1. Account Registration
+#### 1. Account Registration
 
 **Priority:** High
 
@@ -117,7 +117,7 @@ so that I can securely access and manage my job applications.
 
 ---
 
-### 2. Login Functionality
+#### 2. Login Functionality
 
 **Priority:** High
 
@@ -134,7 +134,7 @@ so that I can access my saved job applications and data.
 
 ---
 
-### 3. Create Job Application
+#### 3. Create Job Application
 
 **Priority:** High
 
@@ -151,7 +151,7 @@ so that I can track all relevant details in one place.
 
 ---
 
-### 4. Track Application Progress
+#### 4. Track Application Progress
 
 **Priority:** High
 
@@ -168,7 +168,7 @@ so that I can clearly see where I stand in the hiring process.
 
 ---
 
-### 5. Interview Activity Logging
+#### 5. Interview Activity Logging
 
 **Priority:** High
 
@@ -185,7 +185,7 @@ so that I can track communication history and prepare for next steps.
 
 ---
 
-### 6. Manage Contacts
+#### 6. Manage Contacts
 
 **Priority:** Medium
 
@@ -202,7 +202,7 @@ so that I can easily reference them for follow-ups.
 
 ---
 
-### 7. Follow-Up Task Management
+#### 7. Follow-Up Task Management
 
 **Priority:** High
 
@@ -219,7 +219,7 @@ so that I do not miss important actions in the hiring process.
 
 ---
 
-### 8. Dashboard Summary
+#### 8. Dashboard Summary
 
 **Priority:** Medium
 
@@ -236,7 +236,7 @@ so that I can quickly understand my overall progress.
 
 ---
 
-### 9. Application Search & Filtering
+#### 9. Application Search & Filtering
 
 **Priority:** Medium
 
@@ -253,7 +253,7 @@ so that I can quickly find specific entries.
 
 ---
 
-### 10. Archive/Delete Application
+#### 10. Archive/Delete Application
 
 **Priority:** Medium
 
