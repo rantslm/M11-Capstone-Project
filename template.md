@@ -96,26 +96,179 @@ From a technical perspective, developers and maintainers care because the system
 
 - Include a diagram of the building blocks of the design including users and how they interact with the product.
 
+---
+
 ### User Stories
 
-#### 1: Account Registration
+### 1. Account Registration
 
-Priority: High
+**Priority:** High
 
-**Description: **
-User is able to create an account using email and password
+**Description:**
+User is able to create an account using email and password.
 
-**As a user**
-**I want** to create an account with my email and password
-**so that** I can securely access and manage my job applications.
+**User Story:**
+As a user, I want to create an account with my email and password
+so that I can securely access and manage my job applications.
 
-**Acceptance Criteria**
-- Given a user submits valid registration details
-Then a new account is created and stored in the database
-- Given a user submits an email that already exists
-Then the system displays an appropriate error message
+**Acceptance Criteria:**
+- Given a user submits valid registration details, then a new account is created and stored in the database.
+- Given a user submits an email that already exists, then the system displays an appropriate error message.
 
+---
 
+### 2. Login Functionality
+
+**Priority:** High
+
+**Description:**
+User is able to log in securely.
+
+**User Story:**
+As a user, I want to log in using my credentials
+so that I can access my saved job applications and data.
+
+**Acceptance Criteria:**
+- Given a user enters valid login credentials, then they are authenticated and redirected to the dashboard.
+- Given invalid credentials are entered, then the system displays an error message.
+
+---
+
+### 3. Create Job Application
+
+**Priority:** High
+
+**Description:**
+User can create a new job application entry.
+
+**User Story:**
+As a user, I want to add a job application including company, role, salary range, location, and job link
+so that I can track all relevant details in one place.
+
+**Acceptance Criteria:**
+- Given a user submits a completed job application form, then the application is saved in the database.
+- Given required fields are missing, then the system prevents submission and displays validation errors.
+
+---
+
+### 4. Track Application Progress
+
+**Priority:** High
+
+**Description:**
+User can update the hiring stage of an application.
+
+**User Story:**
+As a user, I want to update an application's status
+so that I can clearly see where I stand in the hiring process.
+
+**Acceptance Criteria:**
+- Given a user selects a new hiring stage, then the updated stage is saved to the database.
+- Given the dashboard loads, then each application displays its current stage.
+
+---
+
+### 5. Interview Activity Logging
+
+**Priority:** High
+
+**Description:**
+User can log interview-related activities.
+
+**User Story:**
+As a user, I want to record interview dates and notes
+so that I can track communication history and prepare for next steps.
+
+**Acceptance Criteria:**
+- Given a user submits interview details, then the activity is saved and linked to the correct application.
+- Given an application is viewed, then all associated interview activities are displayed.
+
+---
+
+### 6. Manage Contacts
+
+**Priority:** Medium
+
+**Description:**
+User can store recruiter or company contact information.
+
+**User Story:**
+As a user, I want to save contact details for recruiters or hiring managers
+so that I can easily reference them for follow-ups.
+
+**Acceptance Criteria:**
+- Given a user submits contact information, then the contact is saved in the database.
+- Given a user views an application, then associated contact details are displayed.
+
+---
+
+### 7. Follow-Up Task Management
+
+**Priority:** High
+
+**Description:**
+User can create and manage follow-up tasks.
+
+**User Story:**
+As a user, I want to create reminders for follow-ups or deadlines
+so that I do not miss important actions in the hiring process.
+
+**Acceptance Criteria:**
+- Given a user creates a task with a due date, then the task is saved and linked to the appropriate application.
+- Given a user marks a task as complete, then the task status updates accordingly.
+
+---
+
+### 8. Dashboard Summary
+
+**Priority:** Medium
+
+**Description:**
+User can view an overview of application statistics.
+
+**User Story:**
+As a user, I want to see a summary of my applications
+so that I can quickly understand my overall progress.
+
+**Acceptance Criteria:**
+- Given a user logs in, then the dashboard displays total application count.
+- Given applications exist in different stages, then the dashboard shows a breakdown by stage.
+
+---
+
+### 9. Application Search & Filtering
+
+**Priority:** Medium
+
+**Description:**
+User can filter applications by stage or company.
+
+**User Story:**
+As a user, I want to filter or search my applications
+so that I can quickly find specific entries.
+
+**Acceptance Criteria:**
+- Given a user enters search criteria, then only matching applications are displayed.
+- Given a user selects a stage filter, then only applications in that stage are shown.
+
+---
+
+### 10. Archive/Delete Application
+
+**Priority:** Medium
+
+**Description:**
+User can remove or archive applications.
+
+**User Story:**
+As a user, I want to delete or archive old applications
+so that my dashboard stays organized.
+
+**Acceptance Criteria:**
+- Given a user selects delete, then the application is removed from the database.
+- Given a user selects archive, then the application is marked inactive and removed from the active dashboard view.
+
+---
 
 ### User Flow
 
