@@ -132,33 +132,32 @@ JobTrail is a client–server web application. Users interact with a React-based
 
 ```mermaid
 flowchart LR
-  U[User\n- Register/Login\n- Create application\n- Update stage\n- Add tasks\n- Log activities]
+  U[User]
 
-  FE[React Frontend (Client)\n- Pages: Login/Register, Dashboard, Application Detail\n- React Router navigation\n- Forms + UI\n- API client: Axios/Fetch]
+  FE[Front end web app]
+  FE_TECH[Client tech: React, React Router, Axios or Fetch, UI library]
 
-  RQ[HTTP Requests (JSON)\nExamples:\nPOST /api/auth/register\nPOST /api/auth/login\nPOST /api/applications\nGET /api/applications?userId=123\nPUT /api/applications/:id\nDELETE /api/applications/:id]
+  BE[Back end API]
+  BE_MVC[MVC: Routes -> Controllers -> Models]
+  BE_AUTH[Auth MVP: email and password login]
+  BE_CRUD[CRUD operations]
 
-  RT[Express Routes\n/api/auth\n/api/applications\n/api/tasks\n/api/contacts]
+  DB[(MySQL database)]
+  DB_TABLES[Tables: Users, Applications, Activities, Tasks, Contacts]
 
-  CT[Controllers\n- Validate input\n- Business logic\n- Scope by userId\n- Build responses]
+  U -->|interacts| FE
 
-  MD[Models\n- User\n- Application\n- Activity\n- Task\n- Contact]
+  FE -->|API calls request| BE
+  BE -->|API response| FE
 
-  DB[(MySQL Database\nTables:\nUsers\nApplications\nActivities\nTasks\nContacts)]
+  BE -->|SQL queries| DB
+  DB -->|query results| BE
 
-  RS[HTTP Responses\n- Status codes\n- JSON data\n- Errors/validation messages]
-
-  U -->|UI interaction| FE
-  FE -->|send request| RQ
-  RQ -->|call endpoints| RT
-  RT --> CT
-  CT --> MD
-  MD -->|SQL CRUD| DB
-  DB -->|query results| MD
-  MD --> CT
-  CT --> RS
-  RS -->|return response| FE
-  FE -->|update UI| U
+  FE --- FE_TECH
+  BE --- BE_MVC
+  BE --- BE_AUTH
+  BE --- BE_CRUD
+  DB --- DB_TABLES
 ```
 ---
 
