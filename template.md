@@ -380,16 +380,50 @@ flowchart TD
 
 ## Open Questions / Out of Scope
 
-- What features are considered out of scope?
+- Third-party job board integrations (LinkedIn, Indeed, etc.) and automatic application importing.
+- Social login (Google, GitHub) and enterprise authentication.
+- Advanced security features (JWT refresh tokens, 2FA, full encryption at rest).
+- File uploads (resume PDFs, screenshots) stored in the app database (attachments will be stored as links or notes in MVP).
+- Real-time notifications (email/SMS/push notifications).
+- Multi-user collaboration (sharing applications with others).
+- Analytics dashboards beyond simple counts (charts, trends, predictions).
+
+- Should “attachments” be implemented as **links only** (MVP) or actual file uploads (stretch)?
+- Should “archive” be a soft-delete (status flag) or a permanent delete?
+- What is the final list of hiring stages (MVP uses: Saved, Applied, Interviewing, Offer, Rejected)?
 
 #### Non-functional Requirements
 
 - What are the key security requirements? (e.g. login, storage of personal details, inactivity timeout, data encryption)
+    - Users must log in to access their dashboard and saved records.
+    - User data should be scoped so users can only view and edit their own applications.
+    - Password input should not be displayed in plain text on the UI.
+    - Sensitive configuration values (database credentials) must be stored in environment variables (e.g., `.env`) and not committed to GitHub.
+    - Basic input validation should be enforced to reduce invalid or unsafe submissions.
+
 - How many transactions should be enabled at peak time?
+    - Expected peak load is small (capstone scale): approximately 1–10 concurrent users.
+    - The system should support typical CRUD activity during peak time (e.g., creating and updating applications/tasks) without noticeable lag.
+    - Target: handle multiple requests per minute without errors during demo usage.
+
 - How easy to use does the software need to be?
+    - The application should be easy to learn with minimal instruction.
+    - Navigation should be consistent across pages (same layout and controls).
+    - Forms should provide clear validation messages for missing or invalid fields.
+    - The dashboard should make it easy to see application status at a glance.
+
 - How quickly should the application respond to user requests?
+    - The app should respond to most user actions within 1–2 seconds in normal conditions.
+    - Dashboard and list views should load quickly with pagination or filtering if needed.
 - How reliable must the application be? (e.g. mean time between failures)
+    - The system should be stable for usage during demo and testing.
+    - Errors should be handled with helpful messages (no crashing UI).
+    - Target: basic availability during demo usage; logging should help diagnose failures.
 - Does the software conform to any technical standards to ease maintainability?
+    - Backend follows MVC structure (Routes → Controllers → Models) for consistency and readability.
+    - RESTful endpoint naming conventions.
+    - Consistent code style and naming conventions (camelCase in JS, clear route naming).
+    - README includes setup steps and environment variable instructions.
 
 ## Project Planning
 
@@ -403,7 +437,73 @@ flowchart TD
 
 ### Implementation
 
-- What were the considerations for deploying the software?
+#### Deployment Strategy
+
+The application is deployed using Docker to ensure consistent environments between local development and production. Containerization allows the backend and database services to run in isolated, reproducible environments.
+
+Docker was selected because it:
+
+- Ensures the same environment runs locally and in production
+- Simplifies setup for marking and demo (single command to run services)
+- Reduces “works on my machine” issues
+- Makes configuration explicit via Dockerfiles and environment variables
+- Supports scalable deployment to container-based hosting platforms
+
+#### Deployment Components
+
+- **Frontend:** React application built for production and served to users.
+- **Backend:** Express API packaged as a Docker container.
+- **Database:** MySQL database used for persistent storage of Users, Applications, Activities, Tasks, and Contacts.
+
+Depending on deployment configuration, the database may be:
+- Hosted as a managed cloud database service, or
+- Containerized as part of the Docker Compose setup.
+
+#### Environment Variables
+
+Sensitive configuration values are stored in environment variables and are not committed to GitHub.
+
+Examples include:
+
+- `DB_HOST`
+- `DB_PORT`
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASSWORD`
+- `PORT`
+- `CLIENT_URL`
+
+This ensures credentials and configuration details remain secure and can be adjusted per environment (development vs production).
+
+#### High-Level Deployment Process
+
+1. Build Docker images for the backend (and optionally frontend).
+2. Push Docker images to a container registry (e.g., Docker Hub).
+3. Deploy the backend container to a Docker-compatible hosting platform.
+4. Configure required environment variables in the hosting platform.
+5. Connect the deployed backend to the production MySQL database.
+6. Run initial table creation or migration scripts if required.
+7. Verify end-to-end functionality:
+   - User login
+   - Create application
+   - Update application stage
+   - Add tasks and activities
+   - Dashboard data retrieval
+
+#### Risks
+
+- **Database connectivity issues:**
+  Validated environment variables and tested database connection before deployment.
+
+- **Environment mismatch between development and production:**
+  Resolved by using Docker containers to standardize runtime configuration.
+
+- **CORS errors between frontend and backend:**
+  Explicitly configured allowed origins in the Express server.
+
+- **Sensitive credentials exposure:**
+  All secrets stored in environment variables and excluded from version control.
+
 
 ### End-to-end Solution
 
@@ -413,3 +513,9 @@ flowchart TD
 
 - Where is the code used in the project? (Use permalinks to GitHub)
 - What are the resources used in the project? (libraries, APIs, databases, tools, etc)
+    - **Frontend:** React, React Router, Axios/Fetch, (optional) UI library
+    - **Backend:** Node.js, Express.js
+    - **Database:** MySQL
+    - **Dev Tools:** Git/GitHub, VS Code, Postman or Hoppscotch, Mermaid Viewer
+    - **Testing:** Jest (and/or Supertest for API tests, if used)
+    - **Documentation:** Markdown (README), Mermaid diagrams
