@@ -132,66 +132,33 @@ JobTrail is a client–server web application. Users interact with a React-based
 
 ```mermaid
 flowchart LR
+  U[User\n- Register/Login\n- Create application\n- Update stage\n- Add tasks\n- Log activities]
 
-    %% ===== USER =====
-    U[User<br/>Register / Login<br/>Create Applications<br/>Update Stages<br/>Add Interview Logs<br/>Manage Tasks]
+  FE[React Frontend (Client)\n- Pages: Login/Register, Dashboard, Application Detail\n- React Router navigation\n- Forms + UI\n- API client: Axios/Fetch]
 
-    %% ===== FRONTEND =====
-    FE[React Frontend<br/><br/>
-    Pages:<br/>Login/Register, Dashboard, Application Detail<br/>
-    React Router<br/>
-    Axios / Fetch]
+  RQ[HTTP Requests (JSON)\nExamples:\nPOST /api/auth/register\nPOST /api/auth/login\nPOST /api/applications\nGET /api/applications?userId=123\nPUT /api/applications/:id\nDELETE /api/applications/:id]
 
-    %% ===== REQUEST TYPES (keep details out of edge labels) =====
-    REQ[Example API Calls<br/><br/>
-    POST /api/auth/login<br/>
-    POST /api/applications<br/>
-    GET /api/applications?userId=123<br/>
-    PUT /api/applications/:id<br/>
-    DELETE /api/applications/:id]
+  RT[Express Routes\n/api/auth\n/api/applications\n/api/tasks\n/api/contacts]
 
-    %% ===== BACKEND LAYERS =====
-    ROUTES[Express Routes<br/>
-    /api/auth<br/>
-    /api/applications<br/>
-    /api/tasks<br/>
-    /api/contacts]
+  CT[Controllers\n- Validate input\n- Business logic\n- Scope by userId\n- Build responses]
 
-    CONTROLLERS[Controllers<br/>
-    Validate Input<br/>
-    Business Logic<br/>
-    Scope by userId<br/>
-    Return JSON]
+  MD[Models\n- User\n- Application\n- Activity\n- Task\n- Contact]
 
-    MODELS[Models<br/>
-    User<br/>
-    Application<br/>
-    Activity<br/>
-    Task<br/>
-    Contact]
+  DB[(MySQL Database\nTables:\nUsers\nApplications\nActivities\nTasks\nContacts)]
 
-    %% ===== DATABASE =====
-    DB[(MySQL Database<br/><br/>
-    Tables:<br/>
-    Users<br/>
-    Applications<br/>
-    Activities<br/>
-    Tasks<br/>
-    Contacts)]
+  RS[HTTP Responses\n- Status codes\n- JSON data\n- Errors/validation messages]
 
-    %% ===== FLOW =====
-    U -->|UI Interaction| FE
-    FE -->|Sends HTTP Requests (JSON)| REQ
-    REQ -->|Calls API Endpoints| ROUTES
-
-    ROUTES --> CONTROLLERS
-    CONTROLLERS --> MODELS
-    MODELS -->|SQL CRUD Operations| DB
-    DB -->|Query Results| MODELS
-    MODELS --> CONTROLLERS
-    CONTROLLERS -->|JSON Response + Status Code| FE
-
-    FE -->|UI Updates| U
+  U -->|UI interaction| FE
+  FE -->|send request| RQ
+  RQ -->|call endpoints| RT
+  RT --> CT
+  CT --> MD
+  MD -->|SQL CRUD| DB
+  DB -->|query results| MD
+  MD --> CT
+  CT --> RS
+  RS -->|return response| FE
+  FE -->|update UI| U
 ```
 ---
 
