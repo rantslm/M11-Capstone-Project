@@ -94,8 +94,116 @@ From a technical perspective, developers and maintainers care because the system
 
 ### Architecture Diagram
 
-- Include a diagram of the building blocks of the design including users and how they interact with the product.
+JobTrail is a client–server web application. Users interact with a React-based front-end which communicates with an Express/Node back-end via REST API calls. The back-end follows an MVC structure (Routes → Controllers → Models) and performs CRUD operations against a MySQL database. Authentication is implemented at an MVP level using email/password login and storing the logged-in user context on the client to scope data to that user.
 
+
+#### Client (Front-End)
+
+- **React** – UI rendering and component-based pages (Login, Dashboard, Forms)
+- **React Router** – navigation between pages (protected pages for logged-in users)
+- **Axios / Fetch** – API client for sending requests to the server
+- **UI Library (optional: MUI / Chakra / etc.)** – form components and layout styling
+
+---
+
+#### Server (Back-End)
+
+- **Node.js** – JavaScript runtime for the server
+- **Express.js** – REST API framework and routing
+- **MVC Structure**
+  - **Routes** – map API endpoints (e.g., `/api/applications`)
+  - **Controllers** – handle request logic, validation, and business rules
+  - **Models** – interact with the database (SQL queries / ORM)
+- **Authentication (MVP)**
+  - `POST /api/auth/register` – creates a user
+  - `POST /api/auth/login` – verifies email and password, returns user information (e.g., `userId`)
+  - Subsequent requests include `userId` to scope data to the logged-in user
+
+---
+
+#### Database
+
+- **MySQL** – relational storage for:
+  - Users
+  - Applications
+  - Activities (interviews / notes)
+  - Tasks (follow-ups)
+  - Contacts
+
+```mermaid
+flowchart LR
+
+    %% ===== USER =====
+    U[User<br/>
+      - Registers / Logs In<br/>
+      - Creates Applications<br/>
+      - Updates Hiring Stage<br/>
+      - Adds Interview Logs<br/>
+      - Manages Tasks]
+
+    %% ===== FRONTEND =====
+    FE[React Frontend<br/><br/>
+      Pages & Components:<br/>
+      - Login / Register<br/>
+      - Dashboard<br/>
+      - Application Detail<br/>
+      - Task Manager<br/><br/>
+      React Router<br/>
+      Axios / Fetch API Client]
+
+    %% ===== BACKEND =====
+    ROUTES[Express Routes<br/>
+      - /api/auth<br/>
+      - /api/applications<br/>
+      - /api/tasks<br/>
+      - /api/contacts]
+
+    CONTROLLERS[Controllers<br/>
+      - Validate Input<br/>
+      - Business Logic<br/>
+      - Scope Data by userId<br/>
+      - Return JSON Responses]
+
+    MODELS[Models<br/>
+      - User Model<br/>
+      - Application Model<br/>
+      - Activity Model<br/>
+      - Task Model<br/>
+      - Contact Model]
+
+    %% ===== DATABASE =====
+    DB[(MySQL Database<br/><br/>
+      Tables:<br/>
+      - Users<br/>
+      - Applications<br/>
+      - Activities<br/>
+      - Tasks<br/>
+      - Contacts)]
+
+    %% ===== FLOW =====
+    U -->|User Interaction| FE
+
+    FE -->|HTTP Request (JSON)<br/>
+      POST /api/auth/login<br/>
+      POST /api/applications<br/>
+      GET /api/applications?userId=123<br/>
+      PUT /api/applications/:id<br/>
+      DELETE /api/applications/:id| ROUTES
+
+    ROUTES --> CONTROLLERS
+    CONTROLLERS --> MODELS
+
+    MODELS -->|SQL CRUD Operations<br/>
+      CREATE / READ / UPDATE / DELETE| DB
+
+    DB -->|Query Results| MODELS
+    MODELS --> CONTROLLERS
+
+    CONTROLLERS -->|HTTP Response<br/>
+      Status Codes + JSON Data| FE
+
+    FE -->|State Update<br/>Re-render UI| U
+```
 ---
 
 ### User Stories
