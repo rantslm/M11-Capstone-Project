@@ -109,4 +109,84 @@ All reads/writes must be scoped to the logged-in user by enforcing:
 and only allowing access to activities/tasks/contacts through an application that belongs to that user.
 
 ---
+
+### Defaults (implemented in migrations)
+- `applications.stage` default = `Saved`
+- `tasks.status` default = `Open`
+
+### Enum sets (implemented as MySQL ENUM or Sequelize validation)
+- `applications.stage`: Saved, Applied, Interviewing, Offer, Rejected
+- `tasks.status`: Open, Done, Snoozed
+- `activities.type`: Email, Call, Interview, Note
+- `contacts.contact_type`: Recruiter, HiringManager, Interviewer, Other
+
+---
+
 ## Mermaid ER Diagram
+
+```mermaid
+erDiagram
+  USERS ||--o{ APPLICATIONS : owns
+  APPLICATIONS ||--o{ CONTACTS : has
+  APPLICATIONS ||--o{ ACTIVITIES : logs
+  APPLICATIONS ||--o{ TASKS : tracks
+
+  USERS {
+    int id PK
+    string email "UNIQUE"
+    string password_hash
+    datetime created_at
+    datetime updated_at
+  }
+
+  APPLICATIONS {
+    int id PK
+    int user_id FK
+    string company_name
+    string position_title
+    string stage "Saved|Applied|Interviewing|Offer|Rejected"
+    string job_url
+    string location
+    int salary_min
+    int salary_max
+    datetime applied_at
+    text notes
+    datetime created_at
+    datetime updated_at
+  }
+
+  CONTACTS {
+    int id PK
+    int application_id FK
+    string name
+    string title
+    string email
+    string phone
+    string linkedin_url
+    string contact_type "Recruiter|HiringManager|Interviewer|Other"
+    text notes
+    datetime created_at
+    datetime updated_at
+  }
+
+  ACTIVITIES {
+    int id PK
+    int application_id FK
+    string type "Email|Call|Interview|Note"
+    datetime occurred_at
+    string summary
+    text details
+    datetime created_at
+    datetime updated_at
+  }
+
+  TASKS {
+    int id PK
+    int application_id FK
+    string title
+    string status "Open|Done|Snoozed"
+    datetime due_at
+    datetime created_at
+    datetime updated_at
+  }
+  ```
