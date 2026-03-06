@@ -1,18 +1,43 @@
-require('dotenv').config()
-const express = require('express')
-const cors = require('cors')
+require('dotenv').config();
 
-const app = express()
+const express = require('express');
+const cors = require('cors');
 
-app.use(cors())
-app.use(express.json())
+// Import Sequelize models (loaded through models/index.js)
+const db = require('../models');
 
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+// Basic health check route
 app.get('/', (req, res) => {
-  res.json({ message: 'Capstone API running' })
-})
+  res.json({ message: 'Capstone API running' });
+});
 
-const PORT = process.env.PORT || 3001
+/**
+ * Temporary test route
+ * This confirms:
+ * - Sequelize is connected
+ * - Models are loaded
+ * - Associations work
+ */
+app.get('/test', async (req, res) => {
+  try {
+    const apps = await db.Application.findAll({
+      include: ['contacts', 'activities', 'tasks'],
+    });
+
+    res.json(apps);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Database query failed' });
+  }
+});
+
+const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+  console.log(`Server running on port ${PORT}`);
+});
