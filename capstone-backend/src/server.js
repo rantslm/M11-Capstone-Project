@@ -5,11 +5,15 @@ const cors = require('cors');
 
 // Import Sequelize models (loaded through models/index.js)
 const db = require('../models');
+// application route
+const applicationRoutes = require('./routes/applicationRoutes');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+app.use('/applications', applicationRoutes);
 
 // Basic health check route
 app.get('/', (req, res) => {
