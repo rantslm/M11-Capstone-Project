@@ -7,6 +7,8 @@ const cors = require('cors');
 const db = require('../models');
 // application route
 const applicationRoutes = require('./routes/applicationRoutes');
+// auth route
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 
@@ -14,6 +16,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/applications', applicationRoutes);
+app.use('/auth', authRoutes);
 
 // Basic health check route
 app.get('/', (req, res) => {
