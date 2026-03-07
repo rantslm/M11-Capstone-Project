@@ -7,7 +7,8 @@ const db = require('../../models');
  */
 exports.getApplications = async (req, res) => {
   try {
-    const applications = await db.Application.findAll({
+    const apps = await db.Application.findAll({
+      where: { user_id: req.user.id },
       include: ['contacts', 'activities', 'tasks'],
     });
 
@@ -43,7 +44,10 @@ exports.getApplicationById = async (req, res) => {
  */
 exports.createApplication = async (req, res) => {
   try {
-    const newApplication = await db.Application.create(req.body);
+    const newApplication = await db.Application.create({
+      ...req.body,
+      user_id: req.user.id,
+    });
     res.status(201).json(newApplication);
   } catch (error) {
     console.error('Error creating application:', error);
