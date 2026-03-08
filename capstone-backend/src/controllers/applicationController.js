@@ -7,7 +7,7 @@ const db = require('../../models');
  */
 exports.getApplications = async (req, res) => {
   try {
-    const apps = await db.Application.findAll({
+    const applications = await db.Application.findAll({
       where: { user_id: req.user.id },
       include: ['contacts', 'activities', 'tasks'],
     });
