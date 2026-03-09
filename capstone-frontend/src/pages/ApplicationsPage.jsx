@@ -40,6 +40,9 @@ function ApplicationsPage() {
     stage: 'Saved',
     location: '',
     job_url: '',
+    salary_min: '',
+    salary_max: '',
+    applied_at: '',
     notes: '',
   });
 
@@ -172,6 +175,12 @@ function ApplicationsPage() {
     event.preventDefault();
     setSubmitError('');
 
+    const payload = {
+      ...formData,
+      salary_min: formData.salary_min ? Number(formData.salary_min) : null,
+      salary_max: formData.salary_max ? Number(formData.salary_max) : null,
+      applied_at: formData.applied_at || null,
+    };
     const token = localStorage.getItem('token');
 
     try {
@@ -181,7 +190,7 @@ function ApplicationsPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
@@ -200,6 +209,9 @@ function ApplicationsPage() {
         stage: 'Saved',
         location: '',
         job_url: '',
+        salary_min: '',
+        salary_max: '',
+        applied_at: '',
         notes: '',
       });
 
@@ -360,6 +372,33 @@ function ApplicationsPage() {
                 value={formData.job_url}
                 onChange={handleChange}
                 fullWidth
+              />
+
+              <TextField
+                label="Salary Min"
+                name="salary_min"
+                type="number"
+                value={formData.salary_min}
+                onChange={handleChange}
+                fullWidth
+              />
+
+              <TextField
+                label="Salary Max"
+                name="salary_max"
+                type="number"
+                value={formData.salary_max}
+                onChange={handleChange}
+                fullWidth
+              />
+
+              <TextField
+                name="applied_at"
+                type="date"
+                value={formData.applied_at}
+                onChange={handleChange}
+                fullWidth
+                slotProps={{ InputLabel: { shrink: true } }}
               />
 
               <TextField
