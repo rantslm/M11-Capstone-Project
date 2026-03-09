@@ -79,7 +79,7 @@ function AuthPage() {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
 
-        navigate('/applications');
+        navigate('/dashboard');
       } else {
         setSuccess('Registration successful. You can now log in.');
         setTabValue(0);
