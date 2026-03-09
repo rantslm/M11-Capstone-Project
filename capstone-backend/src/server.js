@@ -13,6 +13,8 @@ const authRoutes = require('./routes/authRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 // activity route
 const activityRoutes = require('./routes/activityRoutes');
+// task route
+const taskRoutes = require('./routes/taskRoutes');
 
 const app = express();
 
@@ -23,6 +25,7 @@ app.use('/applications', applicationRoutes);
 app.use('/auth', authRoutes);
 app.use('/contacts', contactRoutes);
 app.use('/activities', activityRoutes);
+app.use('/tasks', taskRoutes);
 
 // Basic health check route
 app.get('/', (req, res) => {
