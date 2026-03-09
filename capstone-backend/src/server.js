@@ -11,6 +11,9 @@ const applicationRoutes = require('./routes/applicationRoutes');
 const authRoutes = require('./routes/authRoutes');
 // contacts route
 const contactRoutes = require('./routes/contactRoutes');
+// activity route
+const activityRoutes = require('./routes/activityRoutes');
+
 const app = express();
 
 app.use(cors());
@@ -19,6 +22,7 @@ app.use(express.json());
 app.use('/applications', applicationRoutes);
 app.use('/auth', authRoutes);
 app.use('/contacts', contactRoutes);
+app.use('/activities', activityRoutes);
 
 // Basic health check route
 app.get('/', (req, res) => {
