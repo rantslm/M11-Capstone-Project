@@ -102,7 +102,7 @@ function DashboardPage() {
         {/* Overview statistic cards */}
         <Grid container spacing={2}>
           {/* Active applications count */}
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Paper sx={{ p: 2, borderRadius: 3 }}>
               <Typography variant="h4" fontWeight={700}>
                 {loading ? '—' : activeApplications}
@@ -112,7 +112,7 @@ function DashboardPage() {
           </Grid>
 
           {/* Interviewing stage count */}
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size xs={12} sm={6} md={3}>
             <Paper sx={{ p: 2, borderRadius: 3 }}>
               <Typography variant="h4" fontWeight={700}>
                 {loading ? '—' : interviewingCount}
@@ -122,7 +122,7 @@ function DashboardPage() {
           </Grid>
 
           {/* Offers received count */}
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size xs={12} sm={6} md={3}>
             <Paper sx={{ p: 2, borderRadius: 3 }}>
               <Typography variant="h4" fontWeight={700}>
                 {loading ? '—' : offerCount}
@@ -132,7 +132,7 @@ function DashboardPage() {
           </Grid>
 
           {/* Total tasks across all applications */}
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size xs={12} sm={6} md={3}>
             <Paper sx={{ p: 2, borderRadius: 3 }}>
               <Typography variant="h4" fontWeight={700}>
                 {loading ? '—' : taskCount}
