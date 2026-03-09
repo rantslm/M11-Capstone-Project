@@ -49,6 +49,12 @@ function ApplicationsPage() {
   // Stores submission errors for the create form
   const [submitError, setSubmitError] = useState('');
 
+  // Tracks whether the dialog is creating a new application or editing one
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  // Stores the application currently being edited
+  const [editingApplicationId, setEditingApplicationId] = useState(null);
+
   /**
    * Fetch applications for the logged-in user.
    * the JWT token is read from localStorage and sent in the Authorization header
@@ -108,19 +114,55 @@ function ApplicationsPage() {
     }
   }
   /**
-   * Opens the create application dialog.
+   * Opens the dialog in create mode.
    */
   function handleOpenDialog() {
-    setOpenDialog(true);
+    setIsEditMode(false);
+    setEditingApplicationId(null);
     setSubmitError('');
+    setFormData({
+      company_name: '',
+      position_title: '',
+      stage: 'Saved',
+      location: '',
+      job_url: '',
+      salary_min: '',
+      salary_max: '',
+      applied_at: '',
+      notes: '',
+    });
+    setOpenDialog(true);
   }
 
   /**
-   * Closes the dialog and resets form errors.
+   * Opens the dialog in edit mode and preloads the selected application data.
+   */
+  function handleOpenEditDialog(application) {
+    setIsEditMode(true);
+    setEditingApplicationId(application.id);
+    setSubmitError('');
+    setFormData({
+      company_name: application.company_name || '',
+      position_title: application.position_title || '',
+      stage: application.stage || 'Saved',
+      location: application.location || '',
+      job_url: application.job_url || '',
+      salary_min: application.salary_min ?? '',
+      salary_max: application.salary_max ?? '',
+      applied_at: application.applied_at ? application.applied_at.slice(0, 10) : '',
+      notes: application.notes || '',
+    });
+    setOpenDialog(true);
+  }
+
+  /**
+   * Closes the dialog and clears mode-specific state.
    */
   function handleCloseDialog() {
     setOpenDialog(false);
     setSubmitError('');
+    setIsEditMode(false);
+    setEditingApplicationId(null);
   }
 
   /**
@@ -171,9 +213,11 @@ function ApplicationsPage() {
   /**
    * Sends a new application to the backend.
    */
-  async function handleCreateApplication(event) {
+  async function handleSubmitApplication(event) {
     event.preventDefault();
     setSubmitError('');
+
+    const token = localStorage.getItem('token');
 
     const payload = {
       ...formData,
@@ -181,11 +225,16 @@ function ApplicationsPage() {
       salary_max: formData.salary_max ? Number(formData.salary_max) : null,
       applied_at: formData.applied_at || null,
     };
-    const token = localStorage.getItem('token');
+
+    const url = isEditMode
+      ? `http://localhost:3001/applications/${editingApplicationId}`
+      : 'http://localhost:3001/applications';
+
+    const method = isEditMode ? 'PUT' : 'POST';
 
     try {
-      const response = await fetch('http://localhost:3001/applications', {
-        method: 'POST',
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
@@ -196,31 +245,51 @@ function ApplicationsPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create application');
+        throw new Error(data.error || 'Failed to save application');
       }
 
-      // Refresh the applications list after successful creation
       await fetchApplications();
-
-      // Reset form fields
-      setFormData({
-        company_name: '',
-        position_title: '',
-        stage: 'Saved',
-        location: '',
-        job_url: '',
-        salary_min: '',
-        salary_max: '',
-        applied_at: '',
-        notes: '',
-      });
-
-      // Close dialog
       handleCloseDialog();
     } catch (error) {
       setSubmitError(error.message);
     }
   }
+
+  /**
+   * Deletes an application after user confirmation.
+   */
+  async function handleDeleteApplication(applicationId) {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this application?'
+    );
+
+    if (!confirmed) return;
+
+    const token = localStorage.getItem('token');
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/applications/${applicationId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete application');
+      }
+
+      await fetchApplications();
+    } catch (error) {
+      setError(error.message);
+    }
+  }
+
   return (
     <AppLayout title="Applications">
       <Stack spacing={3}>
@@ -311,6 +380,24 @@ function ApplicationsPage() {
                   {application.notes && (
                     <Typography variant="body2">Notes: {application.notes}</Typography>
                   )}
+                  <Box sx={{ display: 'flex', gap: 1, pt: 1 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => handleOpenEditDialog(application)}
+                    >
+                      Edit
+                    </Button>
+
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      onClick={() => handleDeleteApplication(application.id)}
+                    >
+                      Delete
+                    </Button>
+                  </Box>
                 </Stack>
               </Paper>
             ))}
@@ -318,9 +405,9 @@ function ApplicationsPage() {
         )}
       </Stack>
       <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm">
-        <DialogTitle>New Application</DialogTitle>
+        <DialogTitle>{isEditMode ? 'Edit Application' : 'New Application'}</DialogTitle>
 
-        <Box component="form" onSubmit={handleCreateApplication}>
+        <Box component="form" onSubmit={handleSubmitApplication}>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 1 }}>
               {submitError && <Alert severity="error">{submitError}</Alert>}
@@ -416,7 +503,7 @@ function ApplicationsPage() {
           <DialogActions>
             <Button onClick={handleCloseDialog}>Cancel</Button>
             <Button type="submit" variant="contained">
-              Create
+              {isEditMode ? 'Save Changes' : 'New Application'}
             </Button>
           </DialogActions>
         </Box>
