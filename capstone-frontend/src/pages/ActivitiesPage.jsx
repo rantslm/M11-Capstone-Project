@@ -58,6 +58,8 @@ function ActivitiesPage() {
   const [openDialog, setOpenDialog] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
+  const [dialogMode, setDialogMode] = useState('add');
+  const [editingActivityId, setEditingActivityId] = useState(null);
   // Form state for adding a new activity
   const [formData, setFormData] = useState({
     application_id: '',
@@ -171,7 +173,10 @@ function ActivitiesPage() {
    * Opens the Add Activity dialog and resets form state.
    */
   function handleOpenDialog() {
+    setDialogMode('add');
+    setEditingActivityId(null);
     setSubmitError('');
+
     setFormData({
       application_id: '',
       type: 'Email',
@@ -179,6 +184,24 @@ function ActivitiesPage() {
       summary: '',
       details: '',
     });
+
+    setOpenDialog(true);
+  }
+  function handleOpenEditDialog(activity) {
+    setDialogMode('edit');
+    setEditingActivityId(activity.id);
+    setSubmitError('');
+
+    setFormData({
+      application_id: activity.application_id || '',
+      type: activity.type || 'Email',
+      occurred_at: activity.occurred_at
+        ? new Date(activity.occurred_at).toISOString().slice(0, 16)
+        : '',
+      summary: activity.summary || '',
+      details: activity.details || '',
+    });
+
     setOpenDialog(true);
   }
 
@@ -188,8 +211,9 @@ function ActivitiesPage() {
   function handleCloseDialog() {
     setOpenDialog(false);
     setSubmitError('');
+    setDialogMode('add');
+    setEditingActivityId(null);
   }
-
   /**
    * Updates form field state as the user types/selects values.
    */
@@ -217,35 +241,42 @@ function ActivitiesPage() {
     }
 
     const payload = {
+      application_id: Number(formData.application_id),
       type: formData.type,
       occurred_at: formData.occurred_at,
       summary: formData.summary,
       details: formData.details,
     };
 
+    const url =
+      dialogMode === 'edit'
+        ? `http://localhost:3001/activities/${editingActivityId}`
+        : `http://localhost:3001/activities/application/${formData.application_id}`;
+
+    const method = dialogMode === 'edit' ? 'PUT' : 'POST';
+
     try {
-      const response = await fetch(
-        `http://localhost:3001/activities/application/${formData.application_id}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
 
       const contentType = response.headers.get('content-type');
 
       if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('Backend did not return JSON when creating activity.');
+        throw new Error(
+          `Backend did not return JSON when ${dialogMode === 'edit' ? 'updating' : 'creating'} activity.`
+        );
       }
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create activity');
+        throw new Error(data.error || `Failed to ${dialogMode} activity`);
       }
 
       await fetchActivities();
@@ -411,10 +442,17 @@ function ActivitiesPage() {
             onChange={(event) => setSearchTerm(event.target.value)}
           />
 
-          {/* Add Activity button
-            For now this opens a placeholder dialog until activity/application/contact
-            creation flow is finalized. */}
-          <Button variant="contained" onClick={handleOpenDialog}>
+          {/* Add Activity button */}
+          <Button
+            variant="contained"
+            onClick={handleOpenDialog}
+            sx={{
+              backgroundColor: '#F59E0B',
+              '&:hover': {
+                backgroundColor: '#d97706',
+              },
+            }}
+          >
             Add Activity
           </Button>
         </Box>
@@ -442,8 +480,8 @@ function ActivitiesPage() {
               {/* Count of filtered activities */}
               <Box sx={{ p: 3, pb: 2 }}>
                 <Typography variant="subtitle1" fontWeight={700}>
-                  {filteredActivities.length} Activit
-                  {filteredActivities.length === 1 ? 'y' : 'ies'}
+                  {filteredActivities.length}{' '}
+                  {filteredActivities.length === 1 ? 'Activity' : 'Activities'}
                 </Typography>
               </Box>
 
@@ -595,9 +633,20 @@ function ActivitiesPage() {
                       </Typography>
                     </Box>
 
-                    {/* Edit button:
-                      later this can open the same dialog in edit mode with all fields preloaded */}
-                    <Button variant="outlined" size="small">
+                    {/* Edit button*/}
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => handleOpenEditDialog(selectedActivity)}
+                      sx={{
+                        borderColor: '#F59E0B',
+                        color: '#B45309',
+                        '&:hover': {
+                          borderColor: '#D97706',
+                          backgroundColor: 'rgba(245, 158, 11, 0.08)',
+                        },
+                      }}
+                    >
                       Edit Activity
                     </Button>
                   </Box>
@@ -712,33 +761,94 @@ function ActivitiesPage() {
         PLACEHOLDER ADD ACTIVITY DIALOG
        ========================= */}
       <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm">
-        <DialogTitle>Add Activity</DialogTitle>
+        <DialogTitle>
+          {dialogMode === 'edit' ? 'Edit Activity' : 'Add Activity'}
+        </DialogTitle>
 
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            {submitError && <Alert severity="error">{submitError}</Alert>}
+        <Box component="form" onSubmit={handleSubmitActivity}>
+          <DialogContent>
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              {submitError && <Alert severity="error">{submitError}</Alert>}
 
-            <Typography color="text.secondary">
-              Activity creation flow is temporarily being finalized.
-            </Typography>
+              <TextField
+                select
+                label="Related Application"
+                name="application_id"
+                value={formData.application_id}
+                onChange={handleChange}
+                required
+                fullWidth
+              >
+                {applications.map((application) => (
+                  <MenuItem key={application.id} value={application.id}>
+                    {application.company_name} — {application.position_title}
+                  </MenuItem>
+                ))}
+              </TextField>
 
-            <Typography variant="body2" color="text.secondary">
-              The final dialog will support:
-            </Typography>
+              <TextField
+                select
+                label="Activity Type"
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
+                required
+                fullWidth
+              >
+                <MenuItem value="Email">Email</MenuItem>
+                <MenuItem value="Call">Call</MenuItem>
+                <MenuItem value="Interview">Interview</MenuItem>
+                <MenuItem value="Note">Note</MenuItem>
+              </TextField>
 
-            <Box component="ul" sx={{ m: 0, pl: 3, color: 'text.secondary' }}>
-              <li>selecting an application</li>
-              <li>selecting an activity type</li>
-              <li>setting date and time</li>
-              <li>editing summary and notes</li>
-              <li>future contact linking</li>
-            </Box>
-          </Stack>
-        </DialogContent>
+              <TextField
+                label="Date and Time"
+                name="occurred_at"
+                type="datetime-local"
+                value={formData.occurred_at}
+                onChange={handleChange}
+                required
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+              />
 
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Close</Button>
-        </DialogActions>
+              <TextField
+                label="Summary"
+                name="summary"
+                value={formData.summary}
+                onChange={handleChange}
+                required
+                fullWidth
+              />
+
+              <TextField
+                label="Details"
+                name="details"
+                value={formData.details}
+                onChange={handleChange}
+                fullWidth
+                multiline
+                minRows={4}
+              />
+            </Stack>
+          </DialogContent>
+
+          <DialogActions>
+            <Button onClick={handleCloseDialog}>Cancel</Button>
+            <Button
+              type="submit"
+              variant="contained"
+              sx={{
+                backgroundColor: '#F59E0B',
+                '&:hover': {
+                  backgroundColor: '#D97706',
+                },
+              }}
+            >
+              {dialogMode === 'edit' ? 'Save Changes' : 'Add Activity'}
+            </Button>
+          </DialogActions>
+        </Box>
       </Dialog>
     </AppLayout>
   );
