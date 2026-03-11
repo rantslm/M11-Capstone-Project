@@ -575,26 +575,114 @@ function ApplicationsPage() {
 
                   <Box>
                     <Typography variant="subtitle2" fontWeight={700} gutterBottom>
-                      Related Records
+                      Related Contacts
                     </Typography>
 
-                    <Stack spacing={1}>
-                      <Typography>
-                        <strong>Contacts:</strong>{' '}
-                        {selectedApplication.contacts?.length || 0}
+                    {!selectedApplication.contacts?.length ? (
+                      <Typography color="text.secondary">
+                        No contacts linked to this application.
                       </Typography>
-                      <Typography>
-                        <strong>Activities:</strong>{' '}
-                        {selectedApplication.activities?.length || 0}
-                      </Typography>
-                      <Typography>
-                        <strong>Tasks:</strong> {selectedApplication.tasks?.length || 0}
-                      </Typography>
-                    </Stack>
+                    ) : (
+                      <Stack spacing={1}>
+                        {selectedApplication.contacts.map((contact) => (
+                          <Paper
+                            key={contact.id}
+                            variant="outlined"
+                            sx={{ p: 1.5, borderRadius: 2 }}
+                          >
+                            <Typography fontWeight={600}>
+                              {contact.name || 'Unnamed Contact'}
+                            </Typography>
+
+                            <Typography variant="body2" color="text.secondary">
+                              {contact.title ||
+                                contact.contact_type ||
+                                'No role provided'}
+                            </Typography>
+                          </Paper>
+                        ))}
+                      </Stack>
+                    )}
                   </Box>
 
                   <Divider />
+                  <Divider />
 
+                  <Box>
+                    <Typography variant="subtitle2" fontWeight={700} gutterBottom>
+                      Related Activity
+                    </Typography>
+
+                    {!selectedApplication.activities?.length ? (
+                      <Typography color="text.secondary">
+                        No activity linked to this application.
+                      </Typography>
+                    ) : (
+                      <Stack spacing={1}>
+                        {selectedApplication.activities.map((activity) => (
+                          <Paper
+                            key={activity.id}
+                            variant="outlined"
+                            sx={{ p: 1.5, borderRadius: 2 }}
+                          >
+                            <Typography fontWeight={600}>
+                              {activity.activity_type || 'Activity'}
+                            </Typography>
+
+                            <Typography variant="body2" color="text.secondary">
+                              {activity.occurred_at
+                                ? new Date(activity.occurred_at).toLocaleDateString()
+                                : 'No date provided'}
+                            </Typography>
+
+                            {activity.notes && (
+                              <Typography variant="body2" color="text.secondary">
+                                {activity.notes}
+                              </Typography>
+                            )}
+                          </Paper>
+                        ))}
+                      </Stack>
+                    )}
+                  </Box>
+                  <Divider />
+
+                  <Box>
+                    <Typography variant="subtitle2" fontWeight={700} gutterBottom>
+                      Related Tasks
+                    </Typography>
+
+                    {!selectedApplication.tasks?.length ? (
+                      <Typography color="text.secondary">
+                        No tasks linked to this application.
+                      </Typography>
+                    ) : (
+                      <Stack spacing={1}>
+                        {selectedApplication.tasks.map((task) => (
+                          <Paper
+                            key={task.id}
+                            variant="outlined"
+                            sx={{ p: 1.5, borderRadius: 2 }}
+                          >
+                            <Typography fontWeight={600}>
+                              {task.title || 'Untitled Task'}
+                            </Typography>
+
+                            <Typography variant="body2" color="text.secondary">
+                              Status: {task.status || 'Open'}
+                            </Typography>
+
+                            <Typography variant="body2" color="text.secondary">
+                              Due:{' '}
+                              {task.due_at
+                                ? new Date(task.due_at).toLocaleDateString()
+                                : 'No due date'}
+                            </Typography>
+                          </Paper>
+                        ))}
+                      </Stack>
+                    )}
+                  </Box>
                   <Box>
                     <Typography variant="subtitle2" fontWeight={700} gutterBottom>
                       Notes
