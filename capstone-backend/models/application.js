@@ -82,6 +82,27 @@ module.exports = (sequelize, DataTypes) => {
       notes: {
         type: DataTypes.TEXT,
       },
+      // archive fields
+      is_archived: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+
+      archived_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+
+      archive_reason: {
+        type: DataTypes.ENUM(
+          'Rejected',
+          'Offer Declined',
+          'Withdrawn',
+          'Position Closed'
+        ),
+        allowNull: true,
+      },
     },
     {
       sequelize,
