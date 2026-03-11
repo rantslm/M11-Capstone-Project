@@ -600,11 +600,27 @@ function ApplicationsPage() {
                       </Typography>
                     ) : (
                       <Stack spacing={1}>
+                        {/* Linked related records.
+                            These cards navigate to the corresponding page and will later
+                            support preselecting the clicked record. */}
                         {selectedApplication.contacts.map((contact) => (
                           <Paper
                             key={contact.id}
                             variant="outlined"
-                            sx={{ p: 1.5, borderRadius: 2 }}
+                            onClick={() =>
+                              navigate('/contacts', {
+                                state: { contactId: contact.id },
+                              })
+                            }
+                            sx={{
+                              p: 1.5,
+                              borderRadius: 2,
+                              cursor: 'pointer',
+                              transition: '0.2s ease',
+                              '&:hover': {
+                                bgcolor: 'rgba(0,0,0,0.02)',
+                              },
+                            }}
                           >
                             <Typography fontWeight={600}>
                               {contact.name || 'Unnamed Contact'}
@@ -639,7 +655,20 @@ function ApplicationsPage() {
                           <Paper
                             key={activity.id}
                             variant="outlined"
-                            sx={{ p: 1.5, borderRadius: 2 }}
+                            onClick={() =>
+                              navigate('/activity', {
+                                state: { activityId: activity.id },
+                              })
+                            }
+                            sx={{
+                              p: 1.5,
+                              borderRadius: 2,
+                              cursor: 'pointer',
+                              transition: '0.2s ease',
+                              '&:hover': {
+                                bgcolor: 'rgba(0,0,0,0.02)',
+                              },
+                            }}
                           >
                             <Typography fontWeight={600}>
                               {activity.activity_type || 'Activity'}
@@ -678,7 +707,20 @@ function ApplicationsPage() {
                           <Paper
                             key={task.id}
                             variant="outlined"
-                            sx={{ p: 1.5, borderRadius: 2 }}
+                            onClick={() =>
+                              navigate('/tasks', {
+                                state: { taskId: task.id },
+                              })
+                            }
+                            sx={{
+                              p: 1.5,
+                              borderRadius: 2,
+                              cursor: 'pointer',
+                              transition: '0.2s ease',
+                              '&:hover': {
+                                bgcolor: 'rgba(0,0,0,0.02)',
+                              },
+                            }}
                           >
                             <Typography fontWeight={600}>
                               {task.title || 'Untitled Task'}
