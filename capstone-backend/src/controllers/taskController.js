@@ -1,5 +1,27 @@
 const db = require('../../models');
+/**
+ * Get all tasks for the authenticated user across all applications.
+ */
+exports.getAllTasks = async (req, res) => {
+  try {
+    const tasks = await db.Task.findAll({
+      include: [
+        {
+          model: db.Application,
+          as: 'application',
+          where: { user_id: req.user.id },
+          attributes: ['id', 'company_name', 'position_title'],
+        },
+      ],
+      order: [['due_at', 'ASC']],
+    });
 
+    res.status(200).json(tasks);
+  } catch (error) {
+    console.error('Error fetching all tasks:', error);
+    res.status(500).json({ error: 'Failed to fetch tasks' });
+  }
+};
 /**
  * Get all tasks for a specific application.
  */
