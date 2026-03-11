@@ -61,38 +61,15 @@ function ApplicationsPage() {
   // Stores selected stage filter
   const [stageFilter, setStageFilter] = useState('All');
 
-  /**
-   * Fetch applications for the logged-in user.
-   * the JWT token is read from localStorage and sent in the Authorization header
-   */
-  async function fetchApplications() {
-    const token = localStorage.getItem('token');
-    // If no token exists, redirect back to auth page
-    if (!token) {
-      navigate('/');
-      return;
-    }
+  // Controls whether the archive dialog is open
+  const [openArchiveDialog, setOpenArchiveDialog] = useState(false);
 
-    try {
-      const response = await fetch('http://localhost:3001/applications', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+  // Stores the application selected for archiving
+  const [archivingApplicationId, setArchivingApplicationId] = useState(null);
 
-      const data = await response.json();
+  // Stores the archive reason selected in the archive dialog
+  const [archiveReason, setArchiveReason] = useState('Rejected');
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch applications');
-      }
-
-      setApplications(data);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }
   /**
    * Runs when the page loads to fetch applications.
    */
@@ -169,6 +146,25 @@ function ApplicationsPage() {
     setSubmitError('');
     setIsEditMode(false);
     setEditingApplicationId(null);
+  }
+  /**
+   * Opens the archive dialog for the selected application.
+   */
+  function handleOpenArchiveDialog(applicationId) {
+    setArchivingApplicationId(applicationId);
+    setArchiveReason('Rejected');
+    setSubmitError('');
+    setOpenArchiveDialog(true);
+  }
+
+  /**
+   * Closes the archive dialog and clears archive state.
+   */
+  function handleCloseArchiveDialog() {
+    setOpenArchiveDialog(false);
+    setArchivingApplicationId(null);
+    setArchiveReason('Rejected');
+    setSubmitError('');
   }
 
   /**
@@ -262,37 +258,39 @@ function ApplicationsPage() {
   }
 
   /**
-   * Deletes an application after user confirmation.
+   * Archives an application with the selected archive reason.
    */
-  async function handleDeleteApplication(applicationId) {
-    const confirmed = window.confirm(
-      'Are you sure you want to delete this application?'
-    );
-
-    if (!confirmed) return;
+  async function handleArchiveApplication() {
+    if (!archivingApplicationId) return;
 
     const token = localStorage.getItem('token');
 
     try {
       const response = await fetch(
-        `http://localhost:3001/applications/${applicationId}`,
+        `http://localhost:3001/applications/${archivingApplicationId}/archive`,
         {
-          method: 'DELETE',
+          method: 'PUT',
           headers: {
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
+          body: JSON.stringify({
+            archive_reason: archiveReason,
+          }),
         }
       );
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to delete application');
+        throw new Error(data.error || 'Failed to archive application');
       }
 
       await fetchApplications();
+      setSubmitError('');
+      handleCloseArchiveDialog();
     } catch (error) {
-      setError(error.message);
+      setSubmitError(error.message);
     }
   }
   /**
@@ -365,7 +363,7 @@ function ApplicationsPage() {
               No applications yet
             </Typography>
             <Typography>
-              Try adjusting your search or filter, or create a new applicaiton.
+              Try adjusting your search or filter, or create a new application.
             </Typography>
           </Paper>
         ) : (
@@ -433,9 +431,9 @@ function ApplicationsPage() {
                       variant="outlined"
                       color="error"
                       size="small"
-                      onClick={() => handleDeleteApplication(application.id)}
+                      onClick={() => handleOpenArchiveDialog(application.id)}
                     >
-                      Delete
+                      Archive
                     </Button>
                   </Box>
                 </Stack>
@@ -525,7 +523,7 @@ function ApplicationsPage() {
                 value={formData.applied_at}
                 onChange={handleChange}
                 fullWidth
-                slotProps={{ InputLabel: { shrink: true } }}
+                InputLabelProps={{ shrink: true }}
               />
 
               <TextField
@@ -547,6 +545,45 @@ function ApplicationsPage() {
             </Button>
           </DialogActions>
         </Box>
+      </Dialog>
+      {/* Archive dialog used to move an active application into the archive
+          with a required archive reason.*/}
+      <Dialog
+        open={openArchiveDialog}
+        onClose={handleCloseArchiveDialog}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Archive Application</DialogTitle>
+
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {submitError && <Alert severity="error">{submitError}</Alert>}
+            <Typography color="text.secondary">
+              Select a reason for moving this application to the archive.
+            </Typography>
+
+            <TextField
+              select
+              label="Reason"
+              value={archiveReason}
+              onChange={(event) => setArchiveReason(event.target.value)}
+              fullWidth
+            >
+              <MenuItem value="Rejected">Rejected</MenuItem>
+              <MenuItem value="Offer Declined">Offer Declined</MenuItem>
+              <MenuItem value="Withdrawn">Withdrawn</MenuItem>
+              <MenuItem value="Position Closed">Position Closed</MenuItem>
+            </TextField>
+          </Stack>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={handleCloseArchiveDialog}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={handleArchiveApplication}>
+            Archive
+          </Button>
+        </DialogActions>
       </Dialog>
     </AppLayout>
   );
