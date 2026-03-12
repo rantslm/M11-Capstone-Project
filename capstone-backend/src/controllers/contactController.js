@@ -1,6 +1,30 @@
 const db = require('../../models');
 
 /**
+ * Get all contacts for the authenticated user across all applications
+ */
+exports.getAllContacts = async (req, res) => {
+  try {
+    const contacts = await db.Contact.findAll({
+      include: [
+        {
+          model: db.Application,
+          as: 'application',
+          where: { user_id: req.user.id },
+          attributes: ['id', 'company_name', 'position_title'],
+        },
+      ],
+      order: [['name', 'ASC']],
+    });
+
+    res.status(200).json(contacts);
+  } catch (error) {
+    console.error('Error fetching all contacts:', error);
+    res.status(500).json({ error: 'Failed to fetch contacts' });
+  }
+};
+
+/**
  * Get all contacts for a specific application
  */
 exports.getContactsByApplication = async (req, res) => {

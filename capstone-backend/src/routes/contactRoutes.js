@@ -4,6 +4,9 @@ const router = express.Router();
 const contactController = require('../controllers/contactController');
 const authMiddleware = require('../middleware/authMiddleware');
 
+// GET all contacts across applications
+router.get('/', authMiddleware, contactController.getAllContacts);
+
 // Get all contacts for one application
 router.get(
   '/application/:applicationId',

@@ -62,9 +62,13 @@ function ApplicationsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [stageFilter, setStageFilter] = useState('All');
 
-  // Archive dialog state
+  // Controls whether the archive dialog is open
   const [openArchiveDialog, setOpenArchiveDialog] = useState(false);
+
+  // Stores the application selected for archiving
   const [archivingApplicationId, setArchivingApplicationId] = useState(null);
+
+  // Stores the archive reason selected in the archive dialog
   const [archiveReason, setArchiveReason] = useState('Rejected');
 
   /**
@@ -102,6 +106,20 @@ function ApplicationsPage() {
       }
 
       setApplications(data);
+      if (data.length === 0) {
+        setSelectedApplication(null);
+        return;
+      }
+
+      setSelectedApplication((prevSelected) => {
+        if (!prevSelected) return data[0];
+
+        const matchingApplication = data.find(
+          (application) => application.id === prevSelected.id
+        );
+
+        return matchingApplication || data[0];
+      });
     } catch (error) {
       setError(error.message);
     } finally {
@@ -180,7 +198,6 @@ function ApplicationsPage() {
     setIsEditMode(false);
     setEditingApplicationId(null);
   }
-
   /**
    * Opens the archive dialog for the selected application.
    */
@@ -737,6 +754,7 @@ function ApplicationsPage() {
 
       {/* Archive dialog used to move an active application into the archive
           with a required archive reason. */}
+
       <Dialog
         open={openArchiveDialog}
         onClose={handleCloseArchiveDialog}

@@ -1,4 +1,25 @@
 const db = require('../../models');
+// Get all activities for the authenticated user
+exports.getAllActivities = async (req, res) => {
+  try {
+    const activities = await db.Activity.findAll({
+      include: [
+        {
+          model: db.Application,
+          as: 'application',
+          where: { user_id: req.user.id },
+          attributes: ['id', 'company_name', 'position_title'],
+        },
+      ],
+      order: [['occurred_at', 'DESC']],
+    });
+
+    res.status(200).json(activities);
+  } catch (error) {
+    console.error('Error fetching all activities:', error);
+    res.status(500).json({ error: 'Failed to fetch activities' });
+  }
+};
 
 /**
  * Get all activities for a specific application.
