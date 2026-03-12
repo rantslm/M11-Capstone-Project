@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Alert,
   Avatar,
@@ -17,6 +17,7 @@ import {
   Typography,
 } from '@mui/material';
 
+import { getIncomingSelectedId, resolveSelectedRecord } from '../utils/selection';
 import AppLayout from '../components/AppLayout';
 
 function ContactsPage() {
@@ -45,6 +46,9 @@ function ContactsPage() {
   const [submitError, setSubmitError] = useState('');
   const [dialogMode, setDialogMode] = useState('add');
   const [editingContactId, setEditingContactId] = useState(null);
+
+  const location = useLocation();
+  const incomingContactId = getIncomingSelectedId(location.state, 'contact');
 
   const emptyContactForm = {
     application_id: '',
@@ -94,13 +98,9 @@ function ContactsPage() {
         return;
       }
 
-      setSelectedContact((prevSelected) => {
-        if (!prevSelected) return data[0];
-
-        const matchingContact = data.find((contact) => contact.id === prevSelected.id);
-
-        return matchingContact || data[0];
-      });
+      setSelectedContact((prevSelected) =>
+        resolveSelectedRecord(data, prevSelected, incomingContactId)
+      );
     } catch (error) {
       setError(error.message);
     } finally {
@@ -141,6 +141,15 @@ function ContactsPage() {
   useEffect(() => {
     fetchContacts();
   }, []);
+
+  /**
+   * Clears route state after using record navigation.
+   */
+  useEffect(() => {
+    if (location.state?.selection?.recordType === 'contact') {
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.pathname, location.state, navigate]);
 
   /**
    * Opens the Add Contact dialog and loads applications for the dropdown.
@@ -306,25 +315,6 @@ function ContactsPage() {
       return matchesSearch && matchesApplication;
     });
   }, [contacts, searchTerm, applicationFilter]);
-
-  /**
-   * If the currently selected contact disappears after filtering,
-   * automatically select the first visible contact.
-   */
-  useEffect(() => {
-    if (filteredContacts.length === 0) {
-      setSelectedContact(null);
-      return;
-    }
-
-    const selectedStillVisible = filteredContacts.some(
-      (contact) => contact.id === selectedContact?.id
-    );
-
-    if (!selectedStillVisible) {
-      setSelectedContact(filteredContacts[0]);
-    }
-  }, [filteredContacts, selectedContact]);
 
   return (
     <AppLayout title="Contacts">

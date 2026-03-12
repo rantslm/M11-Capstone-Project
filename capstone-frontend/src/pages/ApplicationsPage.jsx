@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -18,15 +18,11 @@ import {
 } from '@mui/material';
 
 import AppLayout from '../components/AppLayout';
+import { navigateToRecord } from '../utils/navigation';
 
 function ApplicationsPage() {
   // Used to redirect user if they are not authenticated
   const navigate = useNavigate();
-
-  /** used to detect when user navigates back to this page from another page
-   * so we can refresh the application list and detail view
-   */
-  const location = useLocation();
 
   // Stores fetched application records
   const [applications, setApplications] = useState([]);
@@ -333,36 +329,6 @@ function ApplicationsPage() {
     });
   }, [applications, searchTerm, stageFilter]);
 
-  /**
-   * If the currently selected application disappears after filtering,
-   * automatically select the first visible application.
-   */
-  useEffect(() => {
-    if (filteredApplications.length === 0) {
-      setSelectedApplication(null);
-      return;
-    }
-
-    const requestedId = location.state?.applicationId;
-
-    if (requestedId) {
-      const matched = filteredApplications.find((app) => app.id === requestedId);
-
-      if (matched) {
-        setSelectedApplication(matched);
-        return;
-      }
-    }
-
-    const selectedStillVisible = filteredApplications.some(
-      (application) => application.id === selectedApplication?.id
-    );
-
-    if (!selectedStillVisible) {
-      setSelectedApplication(filteredApplications[0]);
-    }
-  }, [filteredApplications, selectedApplication, location.state]);
-
   return (
     <AppLayout title="Applications">
       <Stack spacing={3}>
@@ -625,9 +591,7 @@ function ApplicationsPage() {
                             key={contact.id}
                             variant="outlined"
                             onClick={() =>
-                              navigate('/contacts', {
-                                state: { contactId: contact.id },
-                              })
+                              navigateToRecord(navigate, 'contact', contact.id)
                             }
                             sx={{
                               p: 1.5,
@@ -639,9 +603,7 @@ function ApplicationsPage() {
                               },
                             }}
                           >
-                            <Typography fontWeight={600}>
-                              {contact.name || 'Unnamed Contact'}
-                            </Typography>
+                            <Typography fontWeight={600}>{contact.name}</Typography>
 
                             <Typography variant="body2" color="text.secondary">
                               {contact.title ||
