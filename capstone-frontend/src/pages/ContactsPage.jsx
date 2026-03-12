@@ -43,9 +43,10 @@ function ContactsPage() {
   // Dialog state
   const [openDialog, setOpenDialog] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [dialogMode, setDialogMode] = useState('add');
+  const [editingContactId, setEditingContactId] = useState(null);
 
-  // Form state for adding a new contact
-  const [formData, setFormData] = useState({
+  const emptyContactForm = {
     application_id: '',
     name: '',
     title: '',
@@ -54,7 +55,9 @@ function ContactsPage() {
     linkedin_url: '',
     contact_type: 'Other',
     notes: '',
-  });
+  };
+  // Form state for adding a new contact
+  const [formData, setFormData] = useState(emptyContactForm);
 
   /**
    * Fetch all contacts for the authenticated user across all applications.
@@ -135,32 +138,49 @@ function ContactsPage() {
    * Opens the Add Contact dialog and loads applications for the dropdown.
    */
   async function handleOpenDialog() {
+    setDialogMode('add');
+    setEditingContactId(null);
     setSubmitError('');
-
-    setFormData({
-      application_id: '',
-      name: '',
-      title: '',
-      email: '',
-      phone: '',
-      linkedin_url: '',
-      contact_type: 'Other',
-      notes: '',
-    });
+    setFormData(emptyContactForm);
 
     const applicationData = await fetchApplicationsForDialog();
     setApplications(applicationData);
     setOpenDialog(true);
   }
-
   /**
-   * Closes the Add Contact dialog and clears submission error state.
+   * Opens the Edit Contact dialog, pre-fills with existing contact data
+   */
+  async function handleOpenEditDialog(contact) {
+    setDialogMode('edit');
+    setEditingContactId(contact.id);
+    setSubmitError('');
+
+    const applicationData = await fetchApplicationsForDialog();
+    setApplications(applicationData);
+
+    setFormData({
+      application_id: contact.application?.id || contact.application_id || '',
+      name: contact.name || '',
+      title: contact.title || '',
+      email: contact.email || '',
+      phone: contact.phone || '',
+      linkedin_url: contact.linkedin_url || '',
+      contact_type: contact.contact_type || 'Other',
+      notes: contact.notes || '',
+    });
+
+    setOpenDialog(true);
+  }
+  /**
+   * Closes the add/edit dialog and resets all related state to default values.
    */
   function handleCloseDialog() {
     setOpenDialog(false);
     setSubmitError('');
+    setDialogMode('add');
+    setEditingContactId(null);
+    setFormData(emptyContactForm);
   }
-
   /**
    * Updates form field state as the user types/selects values.
    */
@@ -188,6 +208,7 @@ function ContactsPage() {
     }
 
     const payload = {
+      application_id: Number(formData.application_id),
       name: formData.name,
       title: formData.title,
       email: formData.email,
@@ -196,24 +217,28 @@ function ContactsPage() {
       contact_type: formData.contact_type,
       notes: formData.notes,
     };
+    // checks if in edit mode and sets the corresponding URL for the fetch req
+    const url =
+      dialogMode === 'edit'
+        ? `http://localhost:3001/contacts/${editingContactId}`
+        : `http://localhost:3001/contacts/application/${formData.application_id}`;
+
+    const method = dialogMode === 'edit' ? 'PUT' : 'POST';
 
     try {
-      const response = await fetch(
-        `http://localhost:3001/contacts/application/${formData.application_id}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create contact');
+        throw new Error(data.error || `Failed to ${dialogMode} contact`);
       }
 
       await fetchContacts();
