@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getIncomingSelectedId, resolveSelectedRecord } from '../utils/selection';
-
+import { navigateToRecord } from '../utils/navigation';
 import {
   Box,
   Typography,
@@ -17,7 +17,6 @@ import {
   TextField,
   MenuItem,
   Avatar,
-  IconButton,
 } from '@mui/material';
 
 /* Activity icons */
@@ -43,6 +42,9 @@ function ActivitiesPage() {
   // Stores all fetched activities
   const [activities, setActivities] = useState([]);
 
+  // Stores contacts for the currently selected application in the dialog
+  const [contacts, setContacts] = useState([]);
+
   // Stores the currently selected activity for the right-side detail panel
   const [selectedActivity, setSelectedActivity] = useState(null);
 
@@ -67,6 +69,7 @@ function ActivitiesPage() {
   // Form state for adding a new activity
   const [formData, setFormData] = useState({
     application_id: '',
+    contact_id: '',
     type: 'Email',
     occurred_at: '',
     summary: '',
@@ -168,6 +171,47 @@ function ActivitiesPage() {
   }
 
   /**
+   * Fetch contacts for one application so an activity can optionally
+   * be linked to a specific contact.
+   */
+  async function fetchContactsByApplication(applicationId) {
+    const token = localStorage.getItem('token');
+
+    if (!token || !applicationId) {
+      setContacts([]);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:3001/contacts/application/${applicationId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const contentType = response.headers.get('content-type');
+
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Backend did not return JSON for contacts.');
+      }
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch contacts');
+      }
+
+      setContacts(data);
+    } catch (error) {
+      console.error('Error fetching contacts for application:', error);
+      setContacts([]);
+    }
+  }
+
+  /**
    * Load page data on first render.
    */
   useEffect(() => {
@@ -182,6 +226,22 @@ function ActivitiesPage() {
     }
   }, [location.pathname, location.state, navigate]);
 
+  // loads contacts for selected application, clears invalid contact selection
+  useEffect(() => {
+    if (!openDialog) return;
+
+    if (!formData.application_id) {
+      setContacts([]);
+      setFormData((prev) => ({
+        ...prev,
+        contact_id: '',
+      }));
+      return;
+    }
+
+    fetchContactsByApplication(formData.application_id);
+  }, [formData.application_id, openDialog]);
+
   /**
    * Opens the Add Activity dialog and resets form state.
    */
@@ -192,6 +252,7 @@ function ActivitiesPage() {
 
     setFormData({
       application_id: '',
+      contact_id: '',
       type: 'Email',
       occurred_at: '',
       summary: '',
@@ -207,6 +268,7 @@ function ActivitiesPage() {
 
     setFormData({
       application_id: activity.application_id || '',
+      contact_id: activity.contact_id || '',
       type: activity.type || 'Email',
       occurred_at: activity.occurred_at
         ? new Date(activity.occurred_at).toISOString().slice(0, 16)
@@ -226,6 +288,7 @@ function ActivitiesPage() {
     setSubmitError('');
     setDialogMode('add');
     setEditingActivityId(null);
+    setContacts([]);
   }
   /**
    * Updates form field state as the user types/selects values.
@@ -255,6 +318,7 @@ function ActivitiesPage() {
 
     const payload = {
       application_id: Number(formData.application_id),
+      contact_id: formData.contact_id ? Number(formData.contact_id) : null,
       type: formData.type,
       occurred_at: formData.occurred_at,
       summary: formData.summary,
@@ -666,34 +730,56 @@ function ActivitiesPage() {
 
                   <Divider />
 
-                  {/* Contact block
-                    Placeholder for now because current Activity model is linked to Application,
-                    not directly to Contact yet. */}
+                  {/* Contact block*/}
                   <Box>
                     <Typography variant="subtitle2" fontWeight={700} gutterBottom>
                       Contact
                     </Typography>
 
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Avatar sx={{ width: 40, height: 40 }}>
-                        <PersonIcon fontSize="small" />
-                      </Avatar>
+                    {selectedActivity.contact ? (
+                      <Paper
+                        variant="outlined"
+                        onClick={() =>
+                          navigateToRecord(
+                            navigate,
+                            'contact',
+                            selectedActivity.contact.id
+                          )
+                        }
+                        sx={{
+                          p: 1.5,
+                          borderRadius: 2,
+                          cursor: 'pointer',
+                          transition: '0.2s ease',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1.5,
+                          '&:hover': {
+                            bgcolor: 'rgba(0,0,0,0.02)',
+                          },
+                        }}
+                      >
+                        <Avatar sx={{ width: 40, height: 40 }}>
+                          <PersonIcon fontSize="small" />
+                        </Avatar>
 
-                      <Box sx={{ flex: 1 }}>
-                        <Typography fontWeight={600}>
-                          Contact link coming soon
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Activities are currently linked to applications. Direct
-                          contact linking can be added in a later step.
-                        </Typography>
-                      </Box>
+                        <Box>
+                          <Typography fontWeight={600}>
+                            {selectedActivity.contact.name}
+                          </Typography>
 
-                      {/* Future link to Contacts page */}
-                      <IconButton size="small" disabled>
-                        <ArrowForwardIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
+                          <Typography variant="body2" color="text.secondary">
+                            {selectedActivity.contact.title ||
+                              selectedActivity.contact.contact_type ||
+                              'No role provided'}
+                          </Typography>
+                        </Box>
+                      </Paper>
+                    ) : (
+                      <Typography color="text.secondary">
+                        No contact linked to this activity.
+                      </Typography>
+                    )}
                   </Box>
 
                   <Divider />
@@ -719,10 +805,32 @@ function ActivitiesPage() {
                     </Typography>
 
                     {selectedActivity.application ? (
-                      <Typography>
-                        {selectedActivity.application.company_name} —{' '}
-                        {selectedActivity.application.position_title}
-                      </Typography>
+                      <Paper
+                        variant="outlined"
+                        onClick={() =>
+                          navigateToRecord(
+                            navigate,
+                            'application',
+                            selectedActivity.application.id
+                          )
+                        }
+                        sx={{
+                          p: 1.5,
+                          borderRadius: 2,
+                          cursor: 'pointer',
+                          transition: '0.2s ease',
+                          '&:hover': {
+                            bgcolor: 'rgba(0,0,0,0.02)',
+                          },
+                        }}
+                      >
+                        <Typography fontWeight={600}>
+                          {selectedActivity.application.company_name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {selectedActivity.application.position_title}
+                        </Typography>
+                      </Paper>
                     ) : (
                       <Typography color="text.secondary">General</Typography>
                     )}
@@ -795,6 +903,27 @@ function ActivitiesPage() {
                 {applications.map((application) => (
                   <MenuItem key={application.id} value={application.id}>
                     {application.company_name} — {application.position_title}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              <TextField
+                select
+                label="Related Contact"
+                name="contact_id"
+                value={formData.contact_id}
+                onChange={handleChange}
+                fullWidth
+                disabled={!formData.application_id}
+                helperText={
+                  !formData.application_id ? 'Select an application first' : 'Optional'
+                }
+              >
+                <MenuItem value="">None</MenuItem>
+                {contacts.map((contact) => (
+                  <MenuItem key={contact.id} value={contact.id}>
+                    {contact.name}
+                    {contact.title ? ` — ${contact.title}` : ''}
                   </MenuItem>
                 ))}
               </TextField>
