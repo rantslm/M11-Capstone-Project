@@ -1,15 +1,10 @@
 import { getRecordRoute } from './recordRoutes';
 
-// navigates to corresponding record page with state for selection
+// navigates to corresponding record page with query param for selection
 export function navigateToRecord(navigate, recordType, recordId) {
-  navigate(getRecordRoute(recordType), {
-    state: {
-      selection: {
-        recordType,
-        id: recordId,
-      },
-    },
-  });
+  const route = getRecordRoute(recordType);
+
+  navigate(`${route}?selected=${recordId}`);
 }
 
 /* example usage:
