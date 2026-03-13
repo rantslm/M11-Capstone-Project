@@ -15,7 +15,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/applications" element={<ApplicationsPage />} />
         <Route path="/contacts" element={<ContactsPage />} />
-        <Route path="/activity" element={<ActivitiesPage />} />
+        <Route path="/activities" element={<ActivitiesPage />} />
         <Route path="/tasks" element={<TasksPage />} />
         <Route path="/archive" element={<ArchivePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { getIncomingSelectedId, resolveSelectedRecord } from '../utils/selection';
 
 import {
   Box,
@@ -35,6 +36,9 @@ import AppLayout from '../components/AppLayout';
 function ActivitiesPage() {
   // Used to redirect user back to auth page if no token exists
   const navigate = useNavigate();
+
+  const location = useLocation();
+  const incomingActivityId = getIncomingSelectedId(location.state, 'activity');
 
   // Stores all fetched activities
   const [activities, setActivities] = useState([]);
@@ -110,12 +114,14 @@ function ActivitiesPage() {
 
       setActivities(sortedActivities);
 
-      // Select the top activity by default on page load
-      if (sortedActivities.length > 0) {
-        setSelectedActivity(sortedActivities[0]);
-      } else {
+      if (sortedActivities.length === 0) {
         setSelectedActivity(null);
+        return;
       }
+
+      setSelectedActivity((prevSelected) =>
+        resolveSelectedRecord(sortedActivities, prevSelected, incomingActivityId)
+      );
     } catch (error) {
       setError(error.message);
       setActivities([]);
@@ -168,6 +174,13 @@ function ActivitiesPage() {
     fetchActivities();
     fetchApplications();
   }, []);
+
+  // route state cleanup
+  useEffect(() => {
+    if (location.state?.selection?.recordType === 'activity') {
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.pathname, location.state, navigate]);
 
   /**
    * Opens the Add Activity dialog and resets form state.

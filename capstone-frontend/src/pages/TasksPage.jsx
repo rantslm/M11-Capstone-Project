@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { getIncomingSelectedId, resolveSelectedRecord } from '../utils/selection';
 import {
   Alert,
   Box,
@@ -26,8 +27,12 @@ import AppLayout from '../components/AppLayout';
 function TasksPage() {
   const navigate = useNavigate();
   // all tasks returned from backend
+
+  const location = useLocation();
+  const incomingTaskId = getIncomingSelectedId(location.state, 'task');
+
   const [tasks, setTasks] = useState([]);
-  //used to poppulate application dropdowns
+  //used to populate application dropdowns
   const [applications, setApplications] = useState([]);
 
   //UI feedback during API requests
@@ -194,6 +199,15 @@ function TasksPage() {
       }
 
       setTasks(data);
+
+      if (data.length === 0) {
+        setSelectedTask(null);
+        return;
+      }
+
+      setSelectedTask((prevSelected) =>
+        resolveSelectedRecord(data, prevSelected, incomingTaskId)
+      );
     } catch (error) {
       setError(error.message);
     }
@@ -238,10 +252,17 @@ function TasksPage() {
       setLoading(false);
     }
   }
-
+  // fetch on load
   useEffect(() => {
-    loadPageData();
+    fetchTasks();
   }, []);
+
+  // route state clearing for incoming selection
+  useEffect(() => {
+    if (location.state?.selection?.recordType === 'task') {
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.pathname, location.state, navigate]);
 
   function toggleSection(sectionKey) {
     setCollapsedSections((prev) => ({
