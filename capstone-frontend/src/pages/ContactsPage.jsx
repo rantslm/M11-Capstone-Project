@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 
 import { getIncomingSelectedId, resolveSelectedRecord } from '../utils/selection';
+import { navigateToRecord } from '../utils/navigation';
 import AppLayout from '../components/AppLayout';
 
 function ContactsPage() {
@@ -48,7 +49,7 @@ function ContactsPage() {
   const [editingContactId, setEditingContactId] = useState(null);
 
   const location = useLocation();
-  const incomingContactId = getIncomingSelectedId(location.state, 'contact');
+  const incomingContactId = getIncomingSelectedId(location, 'contact');
 
   const emptyContactForm = {
     application_id: '',
@@ -140,16 +141,7 @@ function ContactsPage() {
    */
   useEffect(() => {
     fetchContacts();
-  }, []);
-
-  /**
-   * Clears route state after using record navigation.
-   */
-  useEffect(() => {
-    if (location.state?.selection?.recordType === 'contact') {
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [location.pathname, location.state, navigate]);
+  }, [location.search]);
 
   /**
    * Opens the Add Contact dialog and loads applications for the dropdown.
@@ -315,6 +307,22 @@ function ContactsPage() {
       return matchesSearch && matchesApplication;
     });
   }, [contacts, searchTerm, applicationFilter]);
+
+  /* keeps selection after filtering */
+  useEffect(() => {
+    if (filteredContacts.length === 0) {
+      setSelectedContact(null);
+      return;
+    }
+
+    const selectedStillVisible = filteredContacts.some(
+      (contact) => contact.id === selectedContact?.id
+    );
+
+    if (!selectedStillVisible) {
+      setSelectedContact(filteredContacts[0]);
+    }
+  }, [filteredContacts, selectedContact]);
 
   return (
     <AppLayout title="Contacts">
@@ -564,10 +572,32 @@ function ContactsPage() {
                     </Typography>
 
                     {selectedContact.application ? (
-                      <Typography>
-                        {selectedContact.application.company_name} —{' '}
-                        {selectedContact.application.position_title}
-                      </Typography>
+                      <Paper
+                        variant="outlined"
+                        onClick={() =>
+                          navigateToRecord(
+                            navigate,
+                            'application',
+                            selectedContact.application.id
+                          )
+                        }
+                        sx={{
+                          p: 1.5,
+                          borderRadius: 2,
+                          cursor: 'pointer',
+                          transition: '0.2s ease',
+                          '&:hover': {
+                            bgcolor: 'rgba(0,0,0,0.02)',
+                          },
+                        }}
+                      >
+                        <Typography fontWeight={600}>
+                          {selectedContact.application.company_name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {selectedContact.application.position_title}
+                        </Typography>
+                      </Paper>
                     ) : (
                       <Typography color="text.secondary">General</Typography>
                     )}
@@ -579,20 +609,40 @@ function ContactsPage() {
                     <Typography variant="subtitle2" fontWeight={700} gutterBottom>
                       Related Activity
                     </Typography>
-                    <Typography color="text.secondary">
-                      Activity linking can be added in the next step.
-                    </Typography>
-                  </Box>
+                    {!selectedContact.activities?.length ? (
+                      <Typography color="text.secondary">
+                        No activities linked to this contact.
+                      </Typography>
+                    ) : (
+                      <Stack spacing={1}>
+                        {selectedContact.activities.map((activity) => (
+                          <Paper
+                            key={activity.id}
+                            variant="outlined"
+                            onClick={() =>
+                              navigateToRecord(navigate, 'activity', activity.id)
+                            }
+                            sx={{
+                              p: 1.5,
+                              borderRadius: 2,
+                              cursor: 'pointer',
+                              transition: '0.2s ease',
+                              '&:hover': {
+                                bgcolor: 'rgba(0,0,0,0.02)',
+                              },
+                            }}
+                          >
+                            <Typography fontWeight={600}>
+                              {activity.type || 'Activity'}
+                            </Typography>
 
-                  <Divider />
-
-                  <Box>
-                    <Typography variant="subtitle2" fontWeight={700} gutterBottom>
-                      Notes
-                    </Typography>
-                    <Typography color="text.secondary">
-                      {selectedContact.notes || 'No notes yet'}
-                    </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {activity.summary || 'No summary provided'}
+                            </Typography>
+                          </Paper>
+                        ))}
+                      </Stack>
+                    )}
                   </Box>
                 </Stack>
               )}
