@@ -10,6 +10,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'application_id',
         as: 'application',
       });
+
+      Contact.hasMany(models.Activity, {
+        foreignKey: 'contact_id',
+        as: 'activities',
+      });
     }
   }
 
