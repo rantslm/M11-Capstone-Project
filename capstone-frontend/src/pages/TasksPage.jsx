@@ -55,7 +55,7 @@ function TasksPage() {
     today: false,
     upcoming: false,
     noDueDate: false,
-    completed: true,
+    completed: false,
   });
 
   //state for the quick add task row
