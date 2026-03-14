@@ -1,59 +1,89 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Grid, Paper, Stack, TextField, Typography } from '@mui/material';
 
 import AppLayout from '../components/AppLayout';
+import { navigateToRecord } from '../utils/navigation';
 
 function DashboardPage() {
   // Used to redirect user if authentication token is missing
   const navigate = useNavigate();
 
-  // Stores application records fetched from the backend API
+  // Stores records fetched from the backend API
   const [applications, setApplications] = useState([]);
+  const [contacts, setContacts] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [tasks, setTasks] = useState([]);
 
   // Used to show loading state while data is being fetched
   const [loading, setLoading] = useState(true);
 
   /**
-   * Fetch applications belonging to the logged-in user.
+   * Fetch records belonging to the logged-in user.
    * The request includes the JWT token stored in localStorage.
    * If the token is missing or invalid, the user is redirected
    * back to the authentication page.
    */
   useEffect(() => {
-    async function fetchApplications() {
+    async function fetchDashboardData() {
       const token = localStorage.getItem('token');
 
-      // If no token exists, user is not authenticated
       if (!token) {
         navigate('/');
         return;
       }
 
       try {
-        const response = await fetch('http://localhost:3001/applications', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        setLoading(true);
 
-        const data = await response.json();
+        const headers = {
+          Authorization: `Bearer ${token}`,
+        };
 
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch applications');
+        const [applicationsRes, contactsRes, activitiesRes, tasksRes] =
+          await Promise.all([
+            fetch('http://localhost:3001/applications', { headers }),
+            fetch('http://localhost:3001/contacts', { headers }),
+            fetch('http://localhost:3001/activities', { headers }),
+            fetch('http://localhost:3001/tasks', { headers }),
+          ]);
+
+        const [applicationsData, contactsData, activitiesData, tasksData] =
+          await Promise.all([
+            applicationsRes.json(),
+            contactsRes.json(),
+            activitiesRes.json(),
+            tasksRes.json(),
+          ]);
+
+        if (!applicationsRes.ok) {
+          throw new Error(applicationsData.error || 'Failed to fetch applications');
         }
 
-        // Store applications returned from backend
-        setApplications(data);
+        if (!contactsRes.ok) {
+          throw new Error(contactsData.error || 'Failed to fetch contacts');
+        }
+
+        if (!activitiesRes.ok) {
+          throw new Error(activitiesData.error || 'Failed to fetch activities');
+        }
+
+        if (!tasksRes.ok) {
+          throw new Error(tasksData.error || 'Failed to fetch tasks');
+        }
+
+        setApplications(applicationsData);
+        setContacts(contactsData);
+        setActivities(activitiesData);
+        setTasks(tasksData);
       } catch (error) {
         console.error(error);
       } finally {
-        // Stop loading indicator
         setLoading(false);
       }
     }
 
-    fetchApplications();
+    fetchDashboardData();
   }, [navigate]);
 
   /**
@@ -73,10 +103,56 @@ function DashboardPage() {
   const offerCount = applications.filter((app) => app.stage === 'Offer').length;
 
   // Total number of tasks across all applications
-  const taskCount = applications.reduce(
-    (total, app) => total + (app.tasks?.length || 0),
-    0
-  );
+  const taskCount = tasks.length;
+
+  // recent records array
+  const recentRecords = useMemo(() => {
+    const applicationRecords = applications.map((application) => ({
+      id: application.id,
+      recordType: 'application',
+      title: `${application.company_name}`,
+      subtitle: `${application.position_title} • Application`,
+      timestamp: application.updatedAt || application.createdAt,
+      meta: `Stage: ${application.stage}`,
+    }));
+
+    const contactRecords = contacts.map((contact) => ({
+      id: contact.id,
+      recordType: 'contact',
+      title: contact.name || 'Unnamed Contact',
+      subtitle: `${contact.application?.company_name || 'General'} • Contact`,
+      timestamp: contact.updatedAt || contact.createdAt,
+      meta: contact.title || contact.contact_type || 'No role provided',
+    }));
+
+    const activityRecords = activities.map((activity) => ({
+      id: activity.id,
+      recordType: 'activity',
+      title: activity.type || 'Activity',
+      subtitle: `${activity.application?.company_name || 'General'} • Activity`,
+      timestamp: activity.updatedAt || activity.createdAt,
+      meta: activity.summary || 'No summary provided',
+    }));
+
+    const taskRecords = tasks.map((task) => ({
+      id: task.id,
+      recordType: 'task',
+      title: task.title || 'Untitled Task',
+      subtitle: `${task.application?.company_name || 'General'} • Task`,
+      timestamp: task.updatedAt || task.createdAt,
+      meta: `Status: ${task.status || 'Open'}`,
+    }));
+
+    return [
+      ...applicationRecords,
+      ...contactRecords,
+      ...activityRecords,
+      ...taskRecords,
+    ]
+      .filter((record) => record.timestamp)
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      .slice(0, 5);
+  }, [applications, contacts, activities, tasks]);
 
   return (
     <AppLayout title="Dashboard">
@@ -142,28 +218,38 @@ function DashboardPage() {
           </Grid>
         </Grid>
 
-        {/* Recent activity / recent applications section */}
+        {/* Recent activity / recent records section */}
         <Box>
           <Typography variant="h5" fontWeight={700} sx={{ mb: 2 }}>
             Recent
           </Typography>
 
           <Stack spacing={2}>
-            {/* Show the first five applications */}
-            {applications.slice(0, 5).map((application) => (
-              <Paper key={application.id} sx={{ p: 2, borderRadius: 3 }}>
-                <Typography variant="h6">{application.company_name}</Typography>
+            {recentRecords.map((record) => (
+              <Paper
+                key={`${record.recordType}-${record.id}`}
+                sx={{
+                  p: 2,
+                  borderRadius: 3,
+                  cursor: 'pointer',
+                  transition: '0.2s ease',
+                  '&:hover': {
+                    bgcolor: 'rgba(0,0,0,0.02)',
+                  },
+                }}
+                onClick={() => navigateToRecord(navigate, record.recordType, record.id)}
+              >
+                <Typography variant="h6">{record.title}</Typography>
 
-                <Typography>{application.position_title}</Typography>
+                <Typography>{record.subtitle}</Typography>
 
                 <Typography variant="body2" color="text.secondary">
-                  Stage: {application.stage}
+                  {record.meta}
                 </Typography>
               </Paper>
             ))}
 
-            {/* Display empty state if user has no applications */}
-            {!loading && applications.length === 0 && (
+            {!loading && recentRecords.length === 0 && (
               <Paper sx={{ p: 2, borderRadius: 3 }}>
                 <Typography>No recent items yet.</Typography>
               </Paper>
