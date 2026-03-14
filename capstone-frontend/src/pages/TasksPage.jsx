@@ -600,7 +600,8 @@ function TasksPage() {
             <Stack>
               {tasks.map((task, index) => {
                 const isEditing = editingTaskId === task.id;
-                const isSelected = selectedTask?.id === task.id;
+                const isSelectedFromNavigation =
+                  incomingTaskId && selectedTask?.id === task.id;
 
                 return (
                   <Box
@@ -609,12 +610,12 @@ function TasksPage() {
                       display: 'grid',
                       gridTemplateColumns: '6px 44px minmax(0, 1fr) auto',
                       alignItems: 'stretch',
-                      bgcolor: isSelected
+                      bgcolor: isSelectedFromNavigation
                         ? 'rgba(34, 197, 94, 0.10)'
                         : tinted
                           ? 'rgba(244, 67, 54, 0.10)'
                           : '#fff',
-                      outline: isSelected
+                      outline: isSelectedFromNavigation
                         ? '2px solid rgba(34, 197, 94, 0.35)'
                         : 'none',
                       borderBottom:
@@ -660,7 +661,10 @@ function TasksPage() {
                           <Box
                             sx={{
                               display: 'grid',
-                              gridTemplateColumns: { xs: '1fr', md: '1fr 180px 140px' },
+                              gridTemplateColumns: {
+                                xs: '1fr',
+                                lg: 'minmax(0, 1fr) minmax(160px, 180px) minmax(120px, 140px)',
+                              },
                               gap: 1.5,
                             }}
                           >
@@ -715,7 +719,6 @@ function TasksPage() {
                             >
                               <MenuItem value="Open">Open</MenuItem>
                               <MenuItem value="Done">Done</MenuItem>
-                              <MenuItem value="Snoozed">Snoozed</MenuItem>
                             </TextField>
                           </Box>
 
