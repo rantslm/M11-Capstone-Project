@@ -74,20 +74,11 @@ function AuthPage() {
         throw new Error(data.error || 'Authentication failed');
       }
 
-      if (isLogin) {
-        // Store auth data for protected requests
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+      // Store auth data for protected requests
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
 
-        navigate('/dashboard');
-      } else {
-        setSuccess('Registration successful. You can now log in.');
-        setTabValue(0);
-        setFormData({
-          email: '',
-          password: '',
-        });
-      }
+      navigate('/dashboard');
     } catch (error) {
       setError(error.message);
     } finally {
