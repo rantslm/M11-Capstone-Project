@@ -190,6 +190,7 @@ Backend API testing was implemented during backend development and is available 
 
 ```text
 capstone-backend/tests
+```
 
 Current test coverage includes:
 
@@ -212,8 +213,7 @@ Project files included in this repository:
 
 Additional project links:
 
-- GitHub repository: https://github.com/rantslm/M11-Capstone-Project
-- Project submission document: https://docs.google.com/document/d/1fq_CEFfOgy-JyznMJKG7uOj4_Fd9AqIlidBckc7MXd8/edit?usp=drive_link
+(Project Presentation)[https://docs.google.com/presentation/d/1AVnuaRdhDe4jQGQkZ4gFQLc0RKmGr1X-lFtLCF5qORA/edit?usp=sharing]
 
 ## Current Status
 
@@ -239,4 +239,3 @@ Production deployment is planned for a future phase. The intended deployment dir
 ## Author
 
 Created by Leilani Rants as part of the Institute of Data Software Engineering Capstone Project.
-```
